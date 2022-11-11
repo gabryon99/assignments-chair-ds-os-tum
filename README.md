@@ -28,18 +28,18 @@ Implement two programs in C/C++/Rust.
 
 #### Server program:
 
-- Initialize a hash table of given size (command line)
+- [x] Initialize a hash table of given size (command line)
 
-- Support insertion of items in the hash table
+- [x] Support insertion of items in the hash table
 
-- Hash table collisions are resolved by maintaining a linked list for each bucket/entry in the hash table
+- [x] Hash table collisions are resolved by maintaining a linked list for each bucket/entry in the hash table
 
-- Supports concurrent operations (multithreading) to perform (insert, read, delete operations on the hash table)
+- [x] Supports concurrent operations (multithreading) to perform (insert, read, delete operations on the hash table)
 
-- Use readers-writer lock to ensure safety of concurrent operations, try to optimize the granularity
+- [x] Use readers-writer lock to ensure safety of concurrent operations, try to optimize the granularity. *Personal note*: implemented fine granularity using the lock-striping technique.
 
-- Communicates with the client program using shared memory buffer (POSIX `shm`)
+- [ ] Communicates with the client program using shared memory buffer (POSIX `shm`)
 
 #### Client program
 
-- Enqueue requests/operations (insert, read a bucket, delete) to the server (that will operate on the hash table) via shared memory buffer (POSIX `shm`)
+- [ ] Enqueue requests/operations (insert, read a bucket, delete) to the server (that will operate on the hash table) via shared memory buffer (POSIX `shm`)
