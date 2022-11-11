@@ -1,4 +1,4 @@
-## Chair of Distributed Systems Assignments
+## Chair of Distributed Systems and Operating Systems Assignments
 
 This repository contains two assignment for an open position at *Chair of Distributed and Operating Systems* at TUM University.
 
