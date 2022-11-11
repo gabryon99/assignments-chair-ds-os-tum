@@ -31,4 +31,9 @@
 *.out
 *.app
 
-build/
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+cmake-build-server/
+cmake-build-client/
