@@ -4,12 +4,23 @@ This repository contains two assignment for an open position at *Chair of Distri
 
 ### Assignment 1: Memory Allocator
 
-Implement two (`malloc` and `free`) library calls using the `sbrk` syscall and implement a simple allocation policy to do thread-safe allocation and free. 
+Implement two (`malloc` and `free`) library calls using the `sbrk` syscall and implement a 
+simple allocation policy to do thread-safe allocation and free. 
 Please also write a short paragraph explaining the policy you implemented, and how it works.
 
-- [x] Write malloc implementation
-- [x] Write free implementation
-- [ ] Write a small paragraph about the implementation
+- [x] Write `malloc` implementation
+- [x] Write `free` implementation
+- [x] Write a small paragraph about the implementation (read below)
+
+#### Allocation Policy
+
+The implemented memory allocator uses a `pthread_mutex_t` to protect the heap's access for concurrent threads.
+The locking procedure is coarse-grained, a thread lock all the list before access and modify it. At the end, the list will be unlocked, allowing other threads to work on it.
+
+For the sake of simplicity, the memory policy chosen for the allocator is the **first-fit approach**. When a free block is found, and its size allows storing another new one, then the block is taken.
+
+The´ runtime of the allocator is not the most-efficient one, it could be improved introducing the splitting and the coalescing of free blocks.
+Moreover, a free list can be added to traverse only the free blocks, to speed up the allocation process.
 
 #### Building process
 
