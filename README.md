@@ -11,6 +11,17 @@ Please also write a short paragraph explaining the policy you implemented, and h
 - [x] Write free implementation
 - [ ] Write a small paragraph about the implementation
 
+#### Building process
+
+The project requires `CMake` and a C++ compiler that supports the standard `C++20` version.
+
+```bash
+$ cd assignment_1
+$ mkdir build/ && cd build/
+$ cmake ..
+$ cmake -build .
+```
+
 ### Assignment 2: Shared-Memory Communication
 
 Implement two programs in C/C++/Rust.
