@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD 20) # Enable C++20 standard
 set(SOURCE_FILES
         ./src/main.cpp
         ./include/HashTable.hpp
-        ../common/include/Protocol.hpp include/Server.hpp ../common/include/Common.hpp)
+        ../common/include/Protocol.hpp include/Server.hpp ../common/include/Common.hpp ../common/include/RingBuffer.hpp)
 
 if(DEBUG)
     add_compile_options(-g -O1)

@@ -52,8 +52,8 @@ private:
     using ReqMessage = typename ShmQueue::ReqMessage;
     using ResMessage = typename ShmQueue::ResMessage;
 
-    void read_next_message(ReqMessage* dest) {
-        return this->m_shared_queue->receive_request(dest);
+    inline ReqMessage read_next_message() {
+        return this->m_shared_queue->receive_request();
     }
 
     void init_shared_queue() {
@@ -89,12 +89,11 @@ private:
     [[noreturn]] void loop(unsigned worker_id) {
 
         std::fprintf(stdout, "[server][info] :: worker#{%u}: starting main loop...\n", worker_id);
-        ReqMessage incoming_message{};
 
         while (true) {
 
             std::fprintf(stdout, "[server][info] :: worker#{%u}: ready to read next message...\n", worker_id);
-            this->read_next_message(&incoming_message);
+            auto incoming_message = this->read_next_message();
 
             switch (incoming_message.m_type) {
                 case ReqMessage::Type::Read: {
@@ -112,7 +111,7 @@ private:
                         answer.m_type = ResMessage::Type::FailedRead;
                     }
 
-                    m_shared_queue->answer_pending_request(&answer);
+                    m_shared_queue->answer_pending_request(answer);
 
                     break;
                 }
@@ -153,7 +152,7 @@ private:
 
     void send_acknowledgement(const ReqMessage &incoming_message) {
         ResMessage response(incoming_message.m_from_client_id);
-        m_shared_queue->answer_pending_request(&response);
+        m_shared_queue->answer_pending_request(response);
     }
 };
 

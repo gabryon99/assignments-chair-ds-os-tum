@@ -27,20 +27,20 @@ public:
 
     void send_insert_request(Key key, Value value, bool async = false) {
         ReqMessage insert_msg(m_client_id, ReqMessage::Type::Insert, key, value, async);
-        m_shared_queue->send_waiting_request(&insert_msg);
+        m_shared_queue->send_waiting_request(insert_msg);
     }
 
 
     void send_remove_request(Key key, bool async = false) {
         ReqMessage remove_msg(m_client_id, ReqMessage::Type::Remove, key, async);
-        m_shared_queue->send_waiting_request(&remove_msg);
+        m_shared_queue->send_waiting_request(remove_msg);
     }
 
     std::optional<Value> send_read_request(Key key) {
 
         ReqMessage read_msg(m_client_id, ReqMessage::Type::Read, key);
 
-        auto answer = m_shared_queue->send_waiting_request(&read_msg);
+        auto answer = m_shared_queue->send_waiting_request(read_msg);
 
         if (answer.m_type == ResMessage::Type::FailedRead) {
             return {};
