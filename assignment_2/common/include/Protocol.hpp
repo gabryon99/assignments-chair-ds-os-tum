@@ -15,8 +15,8 @@ namespace protocol {
         enum class Type { Read, Insert, Remove };
 
         // Which client sent the message to the server
-        int m_from_client_id;
-        bool m_async = true;
+        int m_from_client_id{-1};
+        bool m_async{false};
 
         Type m_type;
 
@@ -41,7 +41,7 @@ namespace protocol {
         };
 
         // To which client is the message referred to
-        int m_dest_client;
+        int m_dest_client{-1};
 
         Type m_type;
         Value m_value;
@@ -217,8 +217,7 @@ namespace protocol {
 
             pthread_mutex_lock(&m_response_mutex);
 
-            while (m_tail_response == m_head_response ||
-                   (!m_responses[m_head_response].m_valid && m_responses[m_head_response].m_msg.m_dest_client != client_id)) {
+            while ((!m_responses[m_head_response].m_valid && m_responses[m_head_response].m_msg.m_dest_client != client_id)) {
                 pthread_cond_wait(&m_response_cond_empty, &m_response_mutex);
             }
 
