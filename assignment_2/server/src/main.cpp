@@ -30,9 +30,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    Server<std::string, std::string> server(4, hash_table_size);
+    Server<MyString, MyString> server(4, hash_table_size);
     server.start();
-
 
     return EXIT_SUCCESS;
 }
