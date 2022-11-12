@@ -3,7 +3,7 @@
 
 struct MyString {
 
-    static constexpr size_t SIZE = 16;
+    static constexpr size_t SIZE = 32;
     char data[SIZE];
 
     MyString() {

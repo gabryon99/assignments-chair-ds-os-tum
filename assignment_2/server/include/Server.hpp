@@ -19,7 +19,7 @@ class Server {
     using ShmQueue = protocol::SharedMessageQueue<Key, Value>;
 
 public:
-    Server(std::size_t workers, std::size_t initial_capacity)
+    Server(std::size_t workers, size_t initial_capacity)
             : m_hashtable(initial_capacity) {
         m_threads.resize(workers);
     }
@@ -61,8 +61,13 @@ private:
         int fd;
         char *addr;
 
+        // unlink previous shared object
+        if (shm_unlink(protocol::SHM_FILENAME) == -1) {
+            panic("[server] :: error while invoking shm_unlink");
+        }
+
         if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
-            panic("[server] :: error while invoking shm_open");
+            panic("[server] :: error while invoking shm_open, probably a server instance is runnign?");
         }
 
         if (ftruncate(fd, sizeof(ShmQueue)) == -1) {
@@ -88,18 +93,22 @@ private:
 
         while (true) {
 
+            std::fprintf(stdout, "[server][info] :: worker#{%u}: ready to read next message...\n", worker_id);
             this->read_next_message(&incoming_message);
 
             switch (incoming_message.m_type) {
                 case ReqMessage::Type::Read: {
 
                     ResMessage answer(incoming_message.m_from_client_id);
+                    std::fprintf(stdout, "[server][info] :: worker#{%u}: read key{%s}\n", worker_id, incoming_message.m_key.data);
 
                     if (auto val = m_hashtable.get(incoming_message.m_key)) {
-                        std::memcpy(&answer.m_value, val.value(), sizeof(Value));
+                        std::fprintf(stdout, "[server][info] :: worker#{%u}: read key{%s}: success value{%s}!\n", worker_id, incoming_message.m_key.data, val.value()->data);
+                        std::memcpy(&answer.m_value, &val.value()->data, sizeof(Value));
                         answer.m_type = ResMessage::Type::SuccessfulRead;
                     }
                     else {
+                        std::fprintf(stdout, "[server][info] :: worker#{%u}: read key{%s}: fail!\n", worker_id, incoming_message.m_key.data);
                         answer.m_type = ResMessage::Type::FailedRead;
                     }
 
@@ -116,7 +125,7 @@ private:
                         std::fprintf(stdout, "[server][info] :: worker#{%u}: insert operation key{%s}: new value{%s} registered!\n", worker_id, incoming_message.m_key.data, incoming_message.m_value.data);
                     }
 
-                    if (incoming_message.m_async) {
+                    if (!incoming_message.m_async) {
                         send_acknowledgement(incoming_message);
                     }
 
@@ -131,7 +140,7 @@ private:
                         std::fprintf(stdout, "[server][info] :: worker#{%u}: remove key{%s} => missing key\n", worker_id, incoming_message.m_key.data);
                     }
 
-                    if (incoming_message.m_async) {
+                    if (!incoming_message.m_async) {
                         send_acknowledgement(incoming_message);
                     }
 
