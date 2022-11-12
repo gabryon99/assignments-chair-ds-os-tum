@@ -134,7 +134,7 @@ private:
                         std::fprintf(stdout, "[server][info] :: worker#{%u}: insert operation key{%s}: new value{%s} registered!\n", worker_id, incoming_message.m_key.data, incoming_message.m_value.data);
                     }
 
-                    if (incoming_message.m_want_answer) {
+                    if (incoming_message.m_async) {
                         send_acknowledgement(incoming_message);
                     }
 
@@ -149,7 +149,7 @@ private:
                         std::fprintf(stdout, "[server][info] :: worker#{%u}: remove key{%s} => missing key\n", worker_id, incoming_message.m_key.data);
                     }
 
-                    if (incoming_message.m_want_answer) {
+                    if (incoming_message.m_async) {
                         send_acknowledgement(incoming_message);
                     }
 
