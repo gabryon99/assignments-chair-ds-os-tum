@@ -76,7 +76,7 @@ public:
      * @return A pointer to the value stored inside the hashtable, otherwise
      * a None option.
      */
-    std::optional<Value*> get(Key& key) noexcept {
+    std::optional<Value*> get(Key key) noexcept {
 
         auto hashed = std::hash<Key>{}(key);
         {
