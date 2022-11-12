@@ -23,6 +23,8 @@ namespace protocol {
         Key m_key;
         Value m_value;
 
+        RequestMessage() {}
+
         RequestMessage(int client_id, Type type, Key key, Value val, bool async = false) : m_from_client_id{client_id}, m_type{type},
             m_key{key}, m_value{val}, m_async{async} {}
 
@@ -39,10 +41,17 @@ namespace protocol {
         };
 
         // To which client is the message referred to
-        int m_to_client_id;
+        int m_dest_client;
 
         Type m_type;
         Value m_value;
+
+        ResponseMessage() {}
+
+        ResponseMessage(int dest_client_id, Type type = Type::Acknowledgment) {}
+
+        ResponseMessage(int dest_client_id, Type type, Value val) : m_dest_client{dest_client_id},
+            m_type{type}, m_value{val} {}
     };
 
     template <typename Key, typename Value, size_t QueueSize = 64>
@@ -209,7 +218,7 @@ namespace protocol {
             pthread_mutex_lock(&m_response_mutex);
 
             while (m_tail_response == m_head_response ||
-                   (!m_responses[m_head_response].m_valid && m_responses[m_head_response].m_msg.m_to_client_id != client_id)) {
+                   (!m_responses[m_head_response].m_valid && m_responses[m_head_response].m_msg.m_dest_client != client_id)) {
                 pthread_cond_wait(&m_response_cond_empty, &m_response_mutex);
             }
 

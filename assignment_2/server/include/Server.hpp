@@ -10,13 +10,8 @@
 #include <unistd.h>
 
 #include "HashTable.hpp"
+#include "Common.hpp"
 #include "Protocol.hpp"
-
-template<class... Ts>
-struct overloaded : Ts ... {
-    using Ts::operator()...;
-};
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 template<typename Key, typename Value>
 class Server {
@@ -29,19 +24,12 @@ public:
         m_threads.resize(workers);
     }
 
-    ~Server() {
-        // TODO: wrap a better helper function
-        shm_unlink("/tmp/shared-mem-queue");
-    }
-
     void start() {
 
         // The server MUST initialize the shared memory area...
         init_shared_queue();
 
-        std::fprintf(stdout,
-                     "[server][info] :: starting server with %lu workers...\n",
-                     this->m_threads.size());
+        std::fprintf(stdout, "[server][info] :: starting server with %lu workers...\n", this->m_threads.size());
 
         unsigned worker_id = 0;
 
@@ -68,31 +56,26 @@ private:
         return this->m_shared_queue->receive_request(dest);
     }
 
-    inline size_t align(size_t n) {
-        return (n + sizeof(ShmQueue) - 1) & ~(sizeof(ShmQueue) - 1);
-    }
-
     void init_shared_queue() {
 
         int fd;
         char *addr;
 
-        if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR)) == -1) {
-            perror("Cannot perform shm_open");
-            std::exit(EXIT_FAILURE);
+        if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
+            panic("[server] :: error while invoking shm_open");
         }
 
-        ftruncate(fd, sizeof(ShmQueue));
-
-        std::fprintf(stdout, "sizeof(ShmQueue) = %ld\n", sizeof(ShmQueue));
+        if (ftruncate(fd, sizeof(ShmQueue)) == -1) {
+            panic("[server] :: error while invoking ftruncate");
+        }
 
         void* mmap_addr = mmap(nullptr, sizeof(ShmQueue), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
         if (mmap_addr == MAP_FAILED) {
-            perror("Error during mmap invocation");
-            std::exit(EXIT_FAILURE);
+            panic("[server] :: error while invoking mmap");
         }
 
         close(fd);
+
         addr = reinterpret_cast<char*>(mmap_addr);
 
         this->m_shared_queue = new(addr) ShmQueue();
@@ -110,15 +93,13 @@ private:
             switch (incoming_message.m_type) {
                 case ReqMessage::Type::Read: {
 
-                    ResMessage answer;
-                    answer.m_to_client_id = incoming_message.m_from_client_id;
+                    ResMessage answer(incoming_message.m_from_client_id);
 
                     if (auto val = m_hashtable.get(incoming_message.m_key)) {
                         std::memcpy(&answer.m_value, val.value(), sizeof(Value));
                         answer.m_type = ResMessage::Type::SuccessfulRead;
                     }
                     else {
-                        // Missing key
                         answer.m_type = ResMessage::Type::FailedRead;
                     }
 
@@ -127,6 +108,7 @@ private:
                     break;
                 }
                 case ReqMessage::Type::Insert: {
+
                     if (auto prev = m_hashtable.insert(incoming_message.m_key, incoming_message.m_value)) {
                         std::fprintf(stdout, "[server][info] :: worker#{%u}: insert key{%s}: popped out value{%s}\n", worker_id, incoming_message.m_key.data, prev.value().data);
                     }
@@ -161,9 +143,7 @@ private:
     }
 
     void send_acknowledgement(const ReqMessage &incoming_message) {
-        ResMessage response;
-        response.m_type = ResMessage::Type::Acknowledgment;
-        response.m_to_client_id = incoming_message.m_from_client_id;
+        ResMessage response(incoming_message.m_from_client_id);
         m_shared_queue->answer_pending_request(&response);
     }
 };
