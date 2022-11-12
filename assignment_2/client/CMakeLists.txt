@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 20) # Enable C++20 standard
 # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*;") # Enable clang-tidy
 
 # Add main.cpp file of project root directory as source file
-set(SOURCE_FILES ./src/main.cpp)
+set(SOURCE_FILES ./src/main.cpp ./include/Client.hpp ../common/include/Protocol.hpp ../common/include/Common.hpp)
 
 if(DEBUG)
     add_compile_options(-g -O1)
