@@ -56,4 +56,9 @@ struct std::hash<MyString> {
     }
 };
 
+[[noreturn]] void panic(const char* msg) {
+    perror(msg);
+    std::exit(EXIT_FAILURE);
+}
+
 #endif //ASSIGNMENT_2_COMMON_HPP
