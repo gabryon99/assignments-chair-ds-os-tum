@@ -77,7 +77,7 @@ private:
         int fd;
         char *addr;
 
-        if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
+        if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR)) == -1) {
             perror("Cannot perform shm_open");
             std::exit(EXIT_FAILURE);
         }
