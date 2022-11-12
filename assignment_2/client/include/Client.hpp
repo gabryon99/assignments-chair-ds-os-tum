@@ -18,52 +18,30 @@ class Client {
 
 public:
 
+    Client() {}
+    ~Client() { free_memory_page(); }
+
     void start() noexcept {
         connect_to_server();
     }
 
-    void send_async_insert_request(Key key, Value value) {
-        ReqMessage msg;
-        msg.m_type = ReqMessage::Type::Insert;
-        msg.m_from_client_id = m_client_id;
-        msg.m_key = key;
-        msg.m_value = value;
-        msg.m_want_answer = false;
-        m_shared_queue->send_request(&msg);
+    void send_insert_request(Key key, Value value, bool async = false) {
+        ReqMessage insert_msg(m_client_id, ReqMessage::Type::Insert, key, value, async);
+        m_shared_queue->send_waiting_request(&insert_msg);
     }
 
-    void send_insert_request(Key key, Value value) {
-        ReqMessage msg;
-        msg.m_type = ReqMessage::Type::Insert;
-        msg.m_from_client_id = m_client_id;
-        msg.m_key = key;
-        msg.m_value = value;
-        m_shared_queue->send_waiting_request(&msg);
-    }
 
-    void send_async_remove_request(Key key) {
-        ReqMessage msg;
-        msg.m_type = ReqMessage::Type::Remove;
-        msg.m_from_client_id = m_client_id;
-        msg.m_key = key;
-        m_shared_queue->send_request(&msg);
-    }
-
-    void send_remove_request(Key key) {
-        ReqMessage msg;
-        msg.m_type = ReqMessage::Type::Remove;
-        msg.m_from_client_id = m_client_id;
-        msg.m_key = key;
-        m_shared_queue->send_waiting_request(&msg);
+    void send_remove_request(Key key, bool async = false) {
+        ReqMessage remove_msg(m_client_id, ReqMessage::Type::Remove, key, async);
+        m_shared_queue->send_waiting_request(&remove_msg);
     }
 
     std::optional<Value> send_read_request(Key key) {
-        ReqMessage msg;
-        msg.m_type = ReqMessage::Type::Read;
-        msg.m_from_client_id = m_client_id;
-        msg.m_key = key;
 
-        auto answer = m_shared_queue->send_waiting_request(&msg);
+        ReqMessage read_msg(m_client_id, ReqMessage::Type::Read, key);
+
+        auto answer = m_shared_queue->send_waiting_request(&read_msg);
+
         if (answer.m_type == ResMessage::Type::FailedRead) {
             return {};
         }
@@ -81,17 +59,23 @@ private:
         int fd;
 
         if ((fd = shm_open(protocol::SHM_FILENAME, O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
-            perror("[client] Error during `shm_open`. Did you start the server?");
-            std::exit(EXIT_FAILURE);
+            panic("[client] Error during `shm_open`. Did you start the server?");
         }
 
         m_shared_queue = reinterpret_cast<ShmQueue*>(mmap(nullptr, sizeof(ShmQueue), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
-
+        // We don't need to keep the file open
         close(fd);
 
+        // Get a client id from the queue
         m_client_id = m_shared_queue->get_client_id();
 
         std::fprintf(stdout, "[client] :: registered as client #%ld...\n", m_client_id);
+    }
+
+    void free_memory_page() {
+        if (munmap(reinterpret_cast<void*>(m_shared_queue), sizeof(ShmQueue)) == -1) {
+            panic("[client] :: error while freeing shared memory page");
+        }
     }
 
 };

@@ -16,12 +16,18 @@ namespace protocol {
 
         // Which client sent the message to the server
         int m_from_client_id;
-        bool m_want_answer = true;
+        bool m_async = true;
 
         Type m_type;
 
         Key m_key;
         Value m_value;
+
+        RequestMessage(int client_id, Type type, Key key, Value val, bool async = false) : m_from_client_id{client_id}, m_type{type},
+            m_key{key}, m_value{val}, m_async{async} {}
+
+        RequestMessage(int client_id, Type type, Key key, bool async = false) : m_from_client_id{client_id},
+            m_type{type}, m_key{key}, m_async{async} {}
 
     };
 
