@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-
+#include <thread>
 #include "Client.hpp"
 
 enum class Command {

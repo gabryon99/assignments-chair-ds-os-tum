@@ -7,7 +7,7 @@
 
 namespace protocol {
 
-    static constexpr const char* SHM_FILENAME = "/tmp/shared-mem-queue";
+    static constexpr const char* SHM_FILENAME = "/tmp/shm-queue";
 
     template <typename Key, typename Value>
     struct RequestMessage {
@@ -48,7 +48,7 @@ namespace protocol {
 
         ResponseMessage() {}
 
-        ResponseMessage(int dest_client_id, Type type = Type::Acknowledgment) {}
+        ResponseMessage(int dest_client_id, Type type = Type::Acknowledgment) : m_dest_client{dest_client_id}, m_type{type} {}
 
         ResponseMessage(int dest_client_id, Type type, Value val) : m_dest_client{dest_client_id},
             m_type{type}, m_value{val} {}
@@ -101,6 +101,8 @@ namespace protocol {
             // Now we should wait for the answer, we use the response queue.
             auto incoming_msg = m_responses.conditional_pop([client_id](const WrapperResMessage& head) -> bool {
                 return client_id != head.m_msg.m_dest_client && !head.m_valid;
+            }, [](WrapperResMessage& head) {
+                head.m_valid = false;
             });
 
             return incoming_msg.m_msg;

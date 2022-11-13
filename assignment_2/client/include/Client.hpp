@@ -30,7 +30,6 @@ public:
         m_shared_queue->send_waiting_request(insert_msg);
     }
 
-
     void send_remove_request(Key key, bool async = false) {
         ReqMessage remove_msg(m_client_id, ReqMessage::Type::Remove, key, async);
         m_shared_queue->send_waiting_request(remove_msg);
