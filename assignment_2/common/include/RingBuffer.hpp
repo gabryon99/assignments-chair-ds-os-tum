@@ -57,19 +57,30 @@ public:
             panic("Error while locking the RingBuffer's mutex");
         }
 
-        while ((m_tail + 1) % BuffSize == m_head && m_full) {
-            if (pthread_cond_wait(&m_cond_full, &m_mutex) != 0) {
-                panic("Error while waiting for `full` condition variable");
+        while (is_full()) {
+            if (pthread_cond_wait(&m_cond_empty, &m_mutex) != 0) {
+                if (errno != ETIMEDOUT) {
+                    panic("Error while waiting for `empty` condition variable");
+                }
+                else {
+                    if (pthread_mutex_unlock(&m_mutex) != 0) {
+                        panic("Error while unlocking the RingBuffer's mutex");
+                    }
+                    if (pthread_mutex_lock(&m_mutex) != 0) {
+                        panic("Error while locking the RingBuffer's mutex");
+                    }
+
+                }
             }
         }
 
         //region Critical Section
         m_buffer[m_tail] = element;
         m_tail = (m_tail + 1) % BuffSize;
-        m_full = (m_tail == m_head);
+        m_count++;
         //endregion
 
-        if (pthread_cond_signal(&m_cond_empty) != 0) {
+        if (pthread_cond_signal(&m_cond_full) != 0) {
             panic("Error while sending signal for `empty` condition variable");
         }
 
@@ -78,8 +89,8 @@ public:
         }
     }
 
-    template <typename Predicate>
-    T conditional_pop(Predicate predicate) {
+    template <typename Predicate, typename PostEffect>
+    T conditional_pop(Predicate predicate, PostEffect effect) {
         T elem;
 
         if (pthread_mutex_lock(&m_mutex) != 0) {
@@ -87,16 +98,32 @@ public:
         }
 
         while (is_empty() || predicate(m_buffer[m_head])) {
-            if (pthread_cond_wait(&m_cond_empty, &m_mutex) != 0) {
-                panic("Error while waiting for `empty` condition variable");
+            if (pthread_cond_wait(&m_cond_full, &m_mutex) != 0) {
+                if (errno != ETIMEDOUT) {
+                    panic("Error while waiting for `full` condition variable");
+                }
+                else {
+                    if (pthread_mutex_unlock(&m_mutex) != 0) {
+                        panic("Error while locking the RingBuffer's mutex");
+                    }
+                    if (pthread_mutex_lock(&m_mutex) != 0) {
+                        panic("Error while locking the RingBuffer's mutex");
+                    }
+                }
             }
         }
 
         //region Critical section
-        m_full = false;
-        elem = m_buffer[m_head];
+        effect(m_buffer[m_head]);
+
+        elem = std::move(m_buffer[m_head]);
         m_head = (m_head + 1) % BuffSize;
+        m_count--;
         //endregion
+
+        if (pthread_cond_signal(&m_cond_empty) != 0) {
+            panic("Error while sending signal for `full` condition variable");
+        }
 
         if (pthread_mutex_unlock(&m_mutex) != 0) {
             panic("Error while locking the RingBuffer's mutex");
@@ -106,7 +133,7 @@ public:
     }
 
     T pop() {
-        return conditional_pop([](const T& head) -> bool {return false;});
+        return conditional_pop([](const T& head) -> bool {return false;}, [](const T& head){});
     }
 
 
@@ -115,7 +142,8 @@ private:
 
     size_t m_head{0};
     size_t m_tail{0};
-    bool m_full{false};
+
+    size_t m_count{0};
 
     pthread_mutex_t m_mutex;
     pthread_mutexattr_t m_mutex_attr;
@@ -126,11 +154,9 @@ private:
     pthread_cond_t m_cond_empty;
     pthread_condattr_t m_cond_attr_empty;
 
-    inline bool is_empty() {
-        return !m_full && (m_head == m_tail);
-    }
+    inline bool is_empty() { return m_count == 0; }
 
-
+    inline bool is_full() {  return (m_count == BuffSize); }
 
 };
 
