@@ -70,7 +70,7 @@ private:
         std::signal(SIGKILL, Server::unlink_shared_memory);
 
         if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
-            panic("[server] :: error while invoking shm_open, probably a server instance is runnign?");
+            panic("[server] :: error while invoking shm_open, probably a server instance is already running.");
         }
 
         if (ftruncate(fd, sizeof(ShmQueue)) == -1) {

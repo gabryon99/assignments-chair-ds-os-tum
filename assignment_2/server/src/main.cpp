@@ -9,7 +9,7 @@ struct Args {
 };
 
 void print_usage() {
-	std::fprintf(stderr, "usage: ./server <hash-table-size> <workers>[default %u]\n", std::thread::hardware_concurrency());
+	std::fprintf(stderr, "usage: ./server <hash-table-size> <workers> [default=%u]\n", std::thread::hardware_concurrency());
 }
 
 Args parse_arguments(int argc, char *const *argv) {
