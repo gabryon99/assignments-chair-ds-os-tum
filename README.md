@@ -49,8 +49,8 @@ Implement two programs in C/C++/Rust.
 
 - [x] Use readers-writer lock to ensure safety of concurrent operations, try to optimize the granularity. *Personal note*: implemented fine granularity using the lock-striping technique.
 
-- [ ] Communicates with the client program using shared memory buffer (POSIX `shm`)
+- [x] Communicates with the client program using shared memory buffer (POSIX `shm`)
 
 #### Client program
 
-- [ ] Enqueue requests/operations (insert, read a bucket, delete) to the server (that will operate on the hash table) via shared memory buffer (POSIX `shm`)
+- [x] Enqueue requests/operations (insert, read a bucket, delete) to the server (that will operate on the hash table) via shared memory buffer (POSIX `shm`)
