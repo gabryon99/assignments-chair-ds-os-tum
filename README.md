@@ -22,7 +22,7 @@ For the sake of simplicity, the memory policy chosen for the allocator is the **
 The runtime of the allocator is not the most-efficient one, it could be improved introducing the splitting and the coalescing of free blocks.
 Moreover, a free list can be added to traverse only the free blocks, to speed up the allocation process.
 
-#### Building process
+#### Building process and tests
 
 The project requires `CMake` and a C++ compiler that supports the standard `C++20` version.
 
@@ -64,3 +64,22 @@ Implement two programs in C/C++/Rust.
 #### Client program
 
 - [x] Enqueue requests/operations (insert, read a bucket, delete) to the server (that will operate on the hash table) via shared memory buffer (POSIX `shm`)
+
+#### Building process and tests
+
+```bash
+$ cd assignment_2
+$ mkdir build/ && cd build/
+$ cmake ..
+$ cmake --build .
+```
+
+The compilation and execution phases have been tested both in macOS and Linux.
+
+```
+# macOS
+Darwin 21.6.0 Darwin Kernel Version 21.6.0: Sat Jun 18 17:07:25 PDT 2022; root:xnu-8020.140.41~1/RELEASE_X86_64 x86_64
+
+# Linux
+Linux 5.18.18-100.fc35.x86_64 #1 SMP PREEMPT_DYNAMIC Wed Aug 17 16:09:22 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+```
