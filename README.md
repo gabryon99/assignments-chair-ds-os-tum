@@ -19,7 +19,7 @@ The locking procedure is coarse-grained, a thread lock all the list before acces
 
 For the sake of simplicity, the memory policy chosen for the allocator is the **first-fit approach**. When a free block is found, and its size allows storing another new one, then the block is taken.
 
-The´ runtime of the allocator is not the most-efficient one, it could be improved introducing the splitting and the coalescing of free blocks.
+The runtime of the allocator is not the most-efficient one, it could be improved introducing the splitting and the coalescing of free blocks.
 Moreover, a free list can be added to traverse only the free blocks, to speed up the allocation process.
 
 #### Building process
