@@ -2,6 +2,7 @@
 #define ASSIGNMENT_2_SERVER_HPP
 
 #include <thread>
+#include <csignal>
 #include <type_traits>
 
 #include <fcntl.h>
@@ -19,8 +20,7 @@ class Server {
     using ShmQueue = protocol::SharedMessageQueue<Key, Value>;
 
 public:
-    Server(std::size_t workers, size_t initial_capacity)
-            : m_hashtable(initial_capacity) {
+    Server(std::size_t workers, size_t initial_capacity) : m_hashtable(initial_capacity) {
         m_threads.resize(workers);
     }
 
@@ -56,15 +56,17 @@ private:
         return this->m_shared_queue->receive_request();
     }
 
+    static void unlink_shared_memory(int signal) {
+        shm_unlink(protocol::SHM_FILENAME);
+    }
+
     void init_shared_queue() {
 
         int fd;
         char *addr;
 
-        // unlink previous shared object
-        if (shm_unlink(protocol::SHM_FILENAME) == -1) {
-            panic("[server] :: error while invoking shm_unlink");
-        }
+        std::signal(SIGINT, Server::unlink_shared_memory);
+        std::signal(SIGKILL, Server::unlink_shared_memory);
 
         if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
             panic("[server] :: error while invoking shm_open, probably a server instance is runnign?");
@@ -88,12 +90,17 @@ private:
 
     [[noreturn]] void loop(unsigned worker_id) {
 
+        char name[128];
+        std::memset(name, 0, 128);
+        std::sprintf(name, "worker:%u", worker_id);
+        pthread_setname_np(name);
+
         std::fprintf(stdout, "[server][info] :: worker#{%u}: starting main loop...\n", worker_id);
 
         while (true) {
 
             std::fprintf(stdout, "[server][info] :: worker#{%u}: ready to read next message...\n", worker_id);
-            auto incoming_message = this->read_next_message();
+             auto incoming_message = this->read_next_message();
 
             switch (incoming_message.m_type) {
                 case ReqMessage::Type::Read: {
@@ -125,7 +132,7 @@ private:
                     }
 
                     if (!incoming_message.m_async) {
-                        send_acknowledgement(incoming_message);
+                        send_acknowledgement(worker_id, incoming_message);
                     }
 
                     break;
@@ -140,7 +147,7 @@ private:
                     }
 
                     if (!incoming_message.m_async) {
-                        send_acknowledgement(incoming_message);
+                        send_acknowledgement(worker_id, incoming_message);
                     }
 
                     break;
@@ -150,8 +157,9 @@ private:
         }
     }
 
-    void send_acknowledgement(const ReqMessage &incoming_message) {
+    void send_acknowledgement(unsigned worker_id, const ReqMessage &incoming_message) {
         ResMessage response(incoming_message.m_from_client_id);
+        std::fprintf(stdout, "[server][info] :: worker#{%u}: sending ack to client#%d!\n", worker_id, incoming_message.m_from_client_id);
         m_shared_queue->answer_pending_request(response);
     }
 };
