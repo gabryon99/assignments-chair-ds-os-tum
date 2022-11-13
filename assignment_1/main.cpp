@@ -1,8 +1,9 @@
 #include <cassert>
 #include <cstdlib>
 
-#include <iostream>
 #include <new>
+#include <array>
+#include <iostream>
 #include <thread>
 #include <vector>
 
