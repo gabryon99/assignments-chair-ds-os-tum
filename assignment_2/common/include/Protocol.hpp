@@ -7,7 +7,11 @@
 
 namespace protocol {
 
+    #ifdef __APPLE__
     static constexpr const char* SHM_FILENAME = "/tmp/shm-queue";
+    #else
+    static constexpr const char *SHM_FILENAME = "/shm-queue";
+    #endif
 
     template <typename Key, typename Value>
     struct RequestMessage {
