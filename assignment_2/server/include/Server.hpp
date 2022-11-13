@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <csignal>
+#include <cstdio>
 #include <type_traits>
 
 #include <fcntl.h>
@@ -89,11 +90,6 @@ private:
     }
 
     [[noreturn]] void loop(unsigned worker_id) {
-
-        char name[128];
-        std::memset(name, 0, 128);
-        std::sprintf(name, "worker:%u", worker_id);
-        pthread_setname_np(name);
 
         std::fprintf(stdout, "[server][info] :: worker#{%u}: starting main loop...\n", worker_id);
 

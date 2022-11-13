@@ -1,6 +1,9 @@
 #ifndef ASSIGNMENT_2_COMMON_HPP
 #define ASSIGNMENT_2_COMMON_HPP
 
+#include <cstdlib>
+#include <cstring>
+
 struct MyString {
 
     static constexpr size_t SIZE = 32;
