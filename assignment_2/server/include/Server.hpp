@@ -3,6 +3,7 @@
 
 #include <csignal>
 
+#include <cstdlib>
 #include <thread>
 #include <type_traits>
 
@@ -57,8 +58,16 @@ private:
         return this->m_shared_queue->receive_request();
     }
 
-    static void unlink_shared_memory(int signal) {
-        shm_unlink(protocol::SHM_FILENAME);
+    static void sigint_handler(int signal) {
+        if (shm_unlink(protocol::SHM_FILENAME) == -1) {
+            panic("[server] :: error while invoking `shm_unlink`");
+        }
+        std::exit(EXIT_SUCCESS);
+    }
+    static void sigkill_handler(int signal) {
+        if (shm_unlink(protocol::SHM_FILENAME) == -1) {
+            panic("[server] :: error while invoking `shm_unlink`");
+        }
     }
 
     void init_shared_queue() {
@@ -66,8 +75,8 @@ private:
         int fd;
         char *addr;
 
-        std::signal(SIGINT, Server::unlink_shared_memory);
-        std::signal(SIGKILL, Server::unlink_shared_memory);
+        std::signal(SIGINT, Server::sigint_handler);
+        std::signal(SIGKILL, Server::sigkill_handler);
 
         if ((fd = shm_open(protocol::SHM_FILENAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1) {
             panic("[server] :: error while invoking shm_open, probably a server instance is already running.");
