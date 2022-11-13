@@ -30,7 +30,7 @@ The project requires `CMake` and a C++ compiler that supports the standard `C++2
 $ cd assignment_1
 $ mkdir build/ && cd build/
 $ cmake ..
-$ cmake -build .
+$ cmake --build .
 ```
 
 ### Assignment 2: Shared-Memory Communication

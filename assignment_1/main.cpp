@@ -1,8 +1,10 @@
-#include <iostream>
 #include <cassert>
+#include <cstdlib>
 
+#include <iostream>
 #include <new>
 #include <thread>
+#include <vector>
 
 #include "mymalloc.h"
 

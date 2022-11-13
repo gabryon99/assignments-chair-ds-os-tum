@@ -1,8 +1,10 @@
-#include <utility>
 #include <cstdio>
+#include <cstdlib>
 
-#include <unistd.h>
+#include <utility>
+
 #include <pthread.h>
+#include <unistd.h>
 
 #include "mymalloc.h"
 
@@ -108,8 +110,9 @@ void* allocator::malloc(size_t size) {
         panic("Error while locking the memory mutex");
     }
 
+#ifdef __APPLE__
     std::fprintf(stdout, "[th:#%ld] :: allocating memory of size %ld...\n", reinterpret_cast<long>(pthread_self()), aligned_size);
-
+#endif
 
     // Find a free block before requesting more memory to the kernel
     if (auto free_block = find_free_block(aligned_size)) {
@@ -153,8 +156,9 @@ void allocator::free(void* ptr) {
     if (pthread_mutex_lock(&memory_mutex) != 0) {
         panic("Error while locking the memory mutex");
     }
-
+#ifdef __APPLE__
     std::fprintf(stdout, "[th:#%ld] :: freeing memory pointed at %p...\n", reinterpret_cast<long>(pthread_self()), block_header->data);
+#endif
 
     block_header->used = false;
 
