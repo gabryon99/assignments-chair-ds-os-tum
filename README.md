@@ -33,6 +33,16 @@ $ cmake ..
 $ cmake --build .
 ```
 
+The compilation and execution phases have been tested both in macOS and Linux.
+
+```
+# macOS
+Darwin 21.6.0 Darwin Kernel Version 21.6.0: Sat Jun 18 17:07:25 PDT 2022; root:xnu-8020.140.41~1/RELEASE_X86_64 x86_64
+
+# Linux
+Linux 5.18.18-100.fc35.x86_64 #1 SMP PREEMPT_DYNAMIC Wed Aug 17 16:09:22 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+```
+
 ### Assignment 2: Shared-Memory Communication
 
 Implement two programs in C/C++/Rust.
