@@ -1,9 +1,9 @@
 #ifndef ASSIGNMENT_2_SERVER_HPP
 #define ASSIGNMENT_2_SERVER_HPP
 
-#include <thread>
 #include <csignal>
-#include <cstdio>
+
+#include <thread>
 #include <type_traits>
 
 #include <fcntl.h>
